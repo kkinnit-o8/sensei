@@ -42,6 +42,13 @@ words.forEach((w, i) => {
   if (!/^[a-zü]+[1-5]( [a-zü]+[1-5])*$/.test(w.pinyinNum)) errors.push(`${where}: odd pinyinNum "${w.pinyinNum}"`);
 });
 
+// Stroke order data must exist offline for every character in the bank.
+const chars = new Set(words.flatMap((w) => Array.from(w.simplified)));
+const strokeDir = path.join(ROOT, "node_modules", "hanzi-writer-data");
+const noStrokes = [...chars].filter((c) => !fs.existsSync(path.join(strokeDir, `${c}.json`)));
+if (!fs.existsSync(strokeDir)) warnings.push("hanzi-writer-data is not installed (run npm install)");
+else if (noStrokes.length) errors.push(`no stroke data for: ${noStrokes.join(" ")}`);
+
 // Examples
 const cedictFile = fs.readdirSync(path.join(ROOT, "data", "sources")).find((f) => /^cedict.*\.txt\.gz$/.test(f))!;
 const cedict = new Map<string, CedictEntry[]>();
@@ -86,6 +93,7 @@ const report = [
   `- Words: ${words.length}`,
   `- With example sentence: ${withExample} (${words.length - withExample} missing; run \`npm run build:words\` with an OpenRouter key)`,
   `- Flagged sentences: ${flagged}`,
+  `- Characters with stroke-order data: ${chars.size - noStrokes.length} of ${chars.size}`,
   `- Structural errors: ${errors.length}, warnings: ${warnings.length}`,
   "",
   "A sentence is fine when it contains its word and uses only words ranked before it. For the first",

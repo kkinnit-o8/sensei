@@ -12,8 +12,8 @@ export interface FreqTable {
 export function loadFreqTable(file = path.join(process.cwd(), "data", "zh-freq.tsv")): FreqTable {
   const map = new Map<string, number>();
   let hanTotal = 1e9;
-  if (!fs.existsSync(file)) return { map, hanTotal };
-  const text = fs.readFileSync(file, "utf8");
+  if (!fs.existsSync(/*turbopackIgnore: true*/ file)) return { map, hanTotal };
+  const text = fs.readFileSync(/*turbopackIgnore: true*/ file, "utf8");
   for (const line of text.split("\n")) {
     if (!line) continue;
     if (line.startsWith("#")) {

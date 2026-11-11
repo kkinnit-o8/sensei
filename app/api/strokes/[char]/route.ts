@@ -11,7 +11,7 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/strokes/[char]"
   if (Array.from(ch).length !== 1 || !/\p{Script=Han}/u.test(ch)) {
     return Response.json({ error: "One Chinese character expected" }, { status: 400 });
   }
-  const file = path.join(process.cwd(), "node_modules", "hanzi-writer-data", `${ch}.json`);
+  const file = path.join(/*turbopackIgnore: true*/ process.cwd(), "node_modules", "hanzi-writer-data", `${ch}.json`);
   try {
     const data = await fs.readFile(file, "utf8");
     return new Response(data, {

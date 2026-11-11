@@ -16,9 +16,22 @@ export function chineseVoices(): SpeechSynthesisVoice[] {
   return zh.sort((a, b) => score(a) - score(b));
 }
 
-let preferredVoiceName: string | null = null;
+/** The chosen voice is kept per device (browsers have different voices), in localStorage. */
+export function preferredVoice(): string | null {
+  try {
+    return localStorage.getItem("voice");
+  } catch {
+    return null;
+  }
+}
+
 export function setPreferredVoice(name: string | null) {
-  preferredVoiceName = name;
+  try {
+    if (name) localStorage.setItem("voice", name);
+    else localStorage.removeItem("voice");
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 export function speak(text: string, rate = 0.9): boolean {
@@ -29,7 +42,8 @@ export function speak(text: string, rate = 0.9): boolean {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "zh-CN";
   u.rate = rate;
-  const voice = voices.find((v) => v.name === preferredVoiceName) ?? voices[0];
+  const name = preferredVoice();
+  const voice = voices.find((v) => v.name === name) ?? voices[0];
   if (voice) u.voice = voice;
   synth.speak(u);
   return !!voice;

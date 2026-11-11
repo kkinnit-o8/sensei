@@ -19,7 +19,7 @@ export function dictPath(): string {
 /** Import CC-CEDICT into a fresh SQLite file. Returns the number of entries. */
 export function buildDict(target = dictPath(), source = cedictSourceFile()): number {
   if (!source) throw new Error("CC-CEDICT source not found in data/sources/");
-  const stat = fs.statSync(source);
+  const stat = fs.statSync(/*turbopackIgnore: true*/ source);
   const tmp = `${target}.tmp`;
   fs.rmSync(tmp, { force: true });
   const db = new Database(tmp);
@@ -29,7 +29,7 @@ export function buildDict(target = dictPath(), source = cedictSourceFile()): num
     CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
   `);
   const insert = db.prepare("INSERT INTO entries (simplified, traditional, pinyin_num, definitions) VALUES (?, ?, ?, ?)");
-  const text = zlib.gunzipSync(fs.readFileSync(source)).toString("utf8");
+  const text = zlib.gunzipSync(fs.readFileSync(/*turbopackIgnore: true*/ source)).toString("utf8");
   let n = 0;
   db.transaction(() => {
     for (const line of text.split("\n")) {

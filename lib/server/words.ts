@@ -28,9 +28,9 @@ export function wordBankPath(): string {
 
 export function loadBank(): { words: BankWord[]; by: Map<string, BankWord> } {
   const file = wordBankPath();
-  const mtime = fs.statSync(file).mtimeMs;
+  const mtime = fs.statSync(/*turbopackIgnore: true*/ file).mtimeMs;
   if (!g.__bank || g.__bank.mtime !== mtime) {
-    const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as WordBankFile;
+    const parsed = JSON.parse(fs.readFileSync(/*turbopackIgnore: true*/ file, "utf8")) as WordBankFile;
     g.__bank = { mtime, file: parsed, by: new Map(parsed.words.map((w) => [w.simplified, w])) };
   }
   return { words: g.__bank.file.words, by: g.__bank.by };

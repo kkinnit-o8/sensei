@@ -268,9 +268,15 @@ function saveAtomic(file: string, data: unknown) {
 }
 
 function writeBank(words: BankWord[]) {
+  // Keep the old timestamp when nothing changed, so rebuilding doesn't create a git diff.
+  let generatedAt = new Date().toISOString();
+  if (fs.existsSync(OUT)) {
+    const prev = JSON.parse(fs.readFileSync(OUT, "utf8")) as WordBankFile;
+    if (JSON.stringify(prev.words) === JSON.stringify(words)) generatedAt = prev.generatedAt;
+  }
   const file: WordBankFile = {
     version: 1,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     count: words.length,
     sources: {
       vocabulary: "HSK 3.0 levels 1–3 from drkameleon/complete-hsk-vocabulary (MIT); meanings from CC-CEDICT (CC BY-SA 4.0)",
