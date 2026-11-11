@@ -12,7 +12,7 @@
  *          --no-open (don't open the browser), --port <n>, --skip-sentences
  * Uses only Node's built-in modules, so it runs before `npm install`.
  */
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
