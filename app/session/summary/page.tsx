@@ -1,15 +1,15 @@
-import { Card, ButtonLink, StepHeader } from "@/components/ui";
+import { connection } from "next/server";
+import { now } from "@/lib/server/clock";
+import { daySummary } from "@/lib/server/summary";
+import { StepHeader } from "@/components/ui";
+import { SummaryView } from "./summary-view";
 
-export default function SummaryPage() {
+export default async function SummaryPage() {
+  await connection();
   return (
     <div>
       <StepHeader step={5} title="Summary" />
-      <Card className="space-y-3">
-        <p>The daily summary arrives in a later phase of the build.</p>
-        <ButtonLink href="/" variant="secondary">
-          Back to today
-        </ButtonLink>
-      </Card>
+      <SummaryView initial={daySummary(now())} />
     </div>
   );
 }

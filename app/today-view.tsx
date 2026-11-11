@@ -15,19 +15,33 @@ function formatDay(day: string) {
   return new Date(y, m - 1, d).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 }
 
-export function TodayView({ overview }: { overview: Overview }) {
+export function TodayView({ overview, streak, todayDone }: { overview: Overview; streak: number; todayDone: boolean }) {
   const current = overview.steps.find((s) => s.id === overview.current);
   const started = overview.steps.some((s) => s.status === "in_progress" || s.status === "done");
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm text-muted">{formatDay(overview.studyDay)}</p>
-        <h1 className="text-3xl font-semibold">Today&apos;s session</h1>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted">{formatDay(overview.studyDay)}</p>
+          <h1 className="text-3xl font-semibold">Today&apos;s session</h1>
+        </div>
+        <div
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${todayDone ? "bg-ok-soft text-ok" : "bg-surface-2 text-muted"}`}
+          title={todayDone ? "Today counts towards your streak" : "Finish all 5 steps to extend your streak"}
+          aria-label={`Streak: ${streak} day${streak === 1 ? "" : "s"}`}
+        >
+          <span aria-hidden>🔥</span>
+          <span className="font-semibold">{streak}</span>
+          <span>day{streak === 1 ? "" : "s"}</span>
+        </div>
       </div>
 
       {overview.completed ? (
         <Card className="border-ok bg-ok-soft">
           <p className="text-lg font-medium text-ok">All done for today. 做得好！</p>
+          <p className="mt-1 text-sm">
+            See your <Link href="/session/summary" className="underline">summary</Link>.
+          </p>
           <p className="mt-1 text-sm">
             Come back tomorrow for new words. You can{" "}
             <Link href="/session/chat" className="underline">

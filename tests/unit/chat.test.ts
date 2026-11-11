@@ -147,3 +147,46 @@ describe("studentUsed", () => {
     expect(studentUsed("吃", "chi1", "wo chi le")).toBe(true);
   });
 });
+
+describe("day completion and streak", () => {
+  async function finishDay(day: string) {
+    const { getOrCreateDay: god, learnPlan: lp, markLearned: ml, getOrCreateQuiz, answerTodayQuiz, reviewQueue } = await import("@/lib/server/session");
+    const { rateWord } = await import("@/lib/server/cards");
+    const { markSummarySeen } = await import("@/lib/server/summary");
+    const t = new Date(dayStart(day).getTime() + 6 * 3600e3);
+    const rec = god(t);
+    for (const w of reviewQueue(rec, t)) rateWord(w, 3, "review", t);
+    for (const w of lp(rec)) ml(w, t);
+    let quiz = getOrCreateQuiz(god(t), t, false);
+    while (quiz && quiz.queue.length) quiz = answerTodayQuiz(god(t), quiz.queue[0], quiz.questions[quiz.queue[0]].word, t).state;
+    replies = [teacher("你好！"), teacher("好。"), teacher("再见！")];
+    const conv = createConversation(t, "my day", true);
+    await generateReply(conv.id, t);
+    for (const text of ["你好", "再见"]) {
+      addUserMessage(conv.id, text, t);
+      await generateReply(conv.id, t);
+    }
+    return markSummarySeen(t);
+  }
+
+  it("completes a day only after the summary and counts consecutive days", async () => {
+    // The beforeEach already learned day one's words; finish that day properly.
+    let s = await finishDay("2026-11-11");
+    expect(s.completed).toBe(true);
+    expect(s.streak.current).toBe(1);
+    s = await finishDay("2026-11-12");
+    expect(s.streak.current).toBe(2);
+    expect(s.learned.length).toBeGreaterThan(0);
+    s = await finishDay("2026-11-14"); // skipped the 13th
+    expect(s.streak.current).toBe(1);
+    expect(s.streak.longest).toBe(2);
+  });
+
+  it("does not complete the day from the summary while steps are unfinished", async () => {
+    const { markSummarySeen } = await import("@/lib/server/summary");
+    const s = markSummarySeen(now);
+    expect(s.ready).toBe(false);
+    expect(s.completed).toBe(false);
+    expect(s.streak.current).toBe(0);
+  });
+});
