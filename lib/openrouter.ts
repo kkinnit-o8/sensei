@@ -183,30 +183,4 @@ export async function chat(opts: ChatOptions): Promise<ChatResult> {
   throw lastError ?? new OpenRouterError("OpenRouter request failed.", "server");
 }
 
-/** Pull the first JSON object out of a model reply (handles ```json fences and stray text). */
-export function extractJson(text: string): unknown {
-  const trimmed = text.trim();
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    /* fall through */
-  }
-  const fence = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
-  if (fence) {
-    try {
-      return JSON.parse(fence[1]);
-    } catch {
-      /* fall through */
-    }
-  }
-  const start = trimmed.indexOf("{");
-  const end = trimmed.lastIndexOf("}");
-  if (start >= 0 && end > start) {
-    try {
-      return JSON.parse(trimmed.slice(start, end + 1));
-    } catch {
-      /* fall through */
-    }
-  }
-  return undefined;
-}
+export { extractJsonObject as extractJson } from "./json";
