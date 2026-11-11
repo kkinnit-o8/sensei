@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useApp } from "./AppProvider";
 
 const LINKS = [
   { href: "/", label: "Today", icon: "M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5" },
@@ -15,6 +16,27 @@ function isActive(path: string, href: string) {
   return href === "/" ? path === "/" || path.startsWith("/session") : path.startsWith(href);
 }
 
+/** Header toggle: show every word in characters with pinyin above (ruby). */
+function RubyToggle() {
+  const { settings, updateSettings } = useApp();
+  return (
+    <button
+      type="button"
+      onClick={() => updateSettings({ ruby: !settings.ruby })}
+      aria-pressed={settings.ruby}
+      title={settings.ruby ? "Showing all characters with pinyin above. Click to go back." : "Show all characters with pinyin above"}
+      className={`rounded-lg border px-2 py-1 text-sm transition-colors ${
+        settings.ruby ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:text-text"
+      }`}
+    >
+      <ruby className="zh">
+        字<rt>zì</rt>
+      </ruby>
+      <span className="sr-only">Pinyin above characters</span>
+    </button>
+  );
+}
+
 export function Nav() {
   const path = usePathname();
   return (
@@ -25,6 +47,7 @@ export function Nav() {
             <span className="zh rounded-md bg-accent px-1.5 py-0.5 text-lg leading-tight text-accent-text">老师</span>
             <span className="hidden sm:inline">Chinese Teacher</span>
           </Link>
+          <div className="flex items-center gap-2">
           <nav className="hidden gap-1 md:flex" aria-label="Main">
             {LINKS.map((l) => (
               <Link
@@ -38,6 +61,8 @@ export function Nav() {
               </Link>
             ))}
           </nav>
+          <RubyToggle />
+          </div>
         </div>
       </header>
       {/* Phone: bottom tab bar */}

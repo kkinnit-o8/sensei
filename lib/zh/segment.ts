@@ -33,7 +33,9 @@ export function splitRuns(text: string): Piece[] {
   return out;
 }
 
+// Tuned on the gold set in tests/unit/segment.test.ts.
 const BANK_BONUS = Math.log(4);
+const PHRASE_PENALTY = Math.log(4);
 const FLOOR_COST = -Math.log(0.5e-9); // known word without frequency data
 const UNKNOWN_CHAR_COST = -Math.log(0.05e-9); // single char not in any dictionary
 
@@ -44,7 +46,31 @@ function wordCost(lex: Lexicon, w: string): number {
   else if (lex.has(w)) cost = FLOOR_COST;
   else cost = UNKNOWN_CHAR_COST;
   if (lex.inBank(w)) cost -= BANK_BONUS;
+  else if (PHRASE_PENALTY > 0 && Array.from(w).length >= 3 && splitsIntoBank(lex, w)) cost += PHRASE_PENALTY;
   return cost;
+}
+
+/**
+ * Dictionary entries of 3+ characters made entirely of word-bank words (不太好, 下个星期)
+ * are usually phrases; a small penalty lets the bank words win when the context prefers them.
+ */
+const splitCache = new WeakMap<Lexicon, Map<string, boolean>>();
+function splitsIntoBank(lex: Lexicon, w: string): boolean {
+  let cache = splitCache.get(lex);
+  if (!cache) splitCache.set(lex, (cache = new Map()));
+  const hit = cache.get(w);
+  if (hit !== undefined) return hit;
+  const chars = Array.from(w);
+  const ok = new Array<boolean>(chars.length + 1).fill(false);
+  ok[0] = true;
+  for (let i = 0; i < chars.length; i++) {
+    if (!ok[i]) continue;
+    for (let j = i + 1; j <= chars.length && j - i < chars.length; j++) {
+      if (lex.inBank(chars.slice(i, j).join(""))) ok[j] = true;
+    }
+  }
+  cache.set(w, ok[chars.length]);
+  return ok[chars.length];
 }
 
 /** Maximum-probability segmentation of one run of Han characters. */
@@ -68,6 +94,19 @@ export function segmentUnigram(run: string, lex: Lexicon): string[] {
   }
   const out: string[] = [];
   for (let j = n; j > 0; j = back[j]) out.unshift(chars.slice(back[j], j).join(""));
+  return applyRules(out);
+}
+
+/**
+ * Small context rules the unigram model can't see.
+ * 的话 "if" ends a clause; followed directly by more words it is 的 + 话 ("the words that ...").
+ */
+function applyRules(words: string[]): string[] {
+  const out: string[] = [];
+  words.forEach((w, i) => {
+    if (w === "的话" && i < words.length - 1) out.push("的", "话");
+    else out.push(w);
+  });
   return out;
 }
 

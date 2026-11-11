@@ -1,0 +1,55 @@
+"use client";
+/** Text-to-speech with the browser's Web Speech API and a Mandarin (zh-CN) voice. */
+import { useEffect, useState } from "react";
+
+function supported(): boolean {
+  return typeof window !== "undefined" && "speechSynthesis" in window;
+}
+
+export function chineseVoices(): SpeechSynthesisVoice[] {
+  if (!supported()) return [];
+  const voices = window.speechSynthesis.getVoices();
+  const zh = voices.filter((v) => /^(zh|cmn)/i.test(v.lang));
+  // Prefer mainland Mandarin, then other Chinese voices; local voices work offline.
+  const score = (v: SpeechSynthesisVoice) =>
+    (/zh[-_]CN|cmn/i.test(v.lang) ? 0 : /zh[-_]TW/i.test(v.lang) ? 1 : 2) * 10 + (v.localService ? 0 : 1) - (/premium|enhanced|natural/i.test(v.name) ? 0.5 : 0);
+  return zh.sort((a, b) => score(a) - score(b));
+}
+
+let preferredVoiceName: string | null = null;
+export function setPreferredVoice(name: string | null) {
+  preferredVoiceName = name;
+}
+
+export function speak(text: string, rate = 0.9): boolean {
+  if (!supported() || !text) return false;
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const voices = chineseVoices();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "zh-CN";
+  u.rate = rate;
+  const voice = voices.find((v) => v.name === preferredVoiceName) ?? voices[0];
+  if (voice) u.voice = voice;
+  synth.speak(u);
+  return !!voice;
+}
+
+/** Re-renders when the browser finishes loading its voice list. */
+export function useChineseVoices(): { voices: SpeechSynthesisVoice[]; ready: boolean; supported: boolean } {
+  const [state, setState] = useState<{ voices: SpeechSynthesisVoice[]; ready: boolean }>({ voices: [], ready: false });
+  useEffect(() => {
+    if (!supported()) return;
+    const update = () => setState({ voices: chineseVoices(), ready: true });
+    const t = setTimeout(update, 0);
+    // Some browsers fill the list asynchronously.
+    const late = setTimeout(update, 1500);
+    window.speechSynthesis.addEventListener("voiceschanged", update);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(late);
+      window.speechSynthesis.removeEventListener("voiceschanged", update);
+    };
+  }, []);
+  return { ...state, supported: supported() };
+}

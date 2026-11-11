@@ -81,6 +81,7 @@ export default function AboutPage() {
         <p className="text-sm">
           The teacher always writes normal Chinese characters. The app then splits the text into words and shows each word you have
           learned in characters and every other word in pinyin. This is done by code, not by the AI, so the rule is always followed.
+          Try it in the <Link href="/renderer" className="text-accent underline">renderer playground</Link>.
         </p>
       </section>
       <Link href="/" className="text-sm text-accent underline">

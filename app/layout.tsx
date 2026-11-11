@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import "./globals.css";
 import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
+import { WordPopupProvider } from "@/components/WordPopup";
 import { getSettings } from "@/lib/server/settings";
 import { learnedWords } from "@/lib/server/learned";
 
@@ -29,7 +30,7 @@ async function AppState({ children }: { children: React.ReactNode }) {
   await connection();
   return (
     <AppProvider initialSettings={getSettings()} initialLearned={learnedWords()}>
-      {children}
+      <WordPopupProvider>{children}</WordPopupProvider>
     </AppProvider>
   );
 }

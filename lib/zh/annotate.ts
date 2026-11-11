@@ -48,6 +48,8 @@ function syllablesFromNum(num: string): string[] {
 
 const PRONOUN_LIKE = new Set(["我", "你", "他", "她", "它", "我们", "你们", "他们", "她们", "咱们", "也", "还", "就", "都", "又", "总", "可", "真", "必须", "一定", "那", "大家"]);
 
+const RETURN_CONTEXT = new Set(["没", "没有", "不", "要", "去", "来", "会", "想", "能", "得", "该", "应该", "快", "请", "别", "必须", "忘了", "记得"]);
+
 /** Fix single-character polyphones using neighbouring words. Returns a marked syllable or null. */
 function fixSingle(word: string, prev: string | undefined, next: string | undefined, lex: Lexicon): string | null {
   if (word === "得") {
@@ -58,6 +60,12 @@ function fixSingle(word: string, prev: string | undefined, next: string | undefi
     return null;
   }
   if (word === "长" && next === "得") return "zhǎng";
+  // On its own, 了 is the particle le (liǎo only appears inside words like 了解, 受不了).
+  if (word === "了") return "le";
+  // 还 "to give back" after a negation or modal verb: 没还书 méi huán shū, 要还钱 yào huán qián.
+  if (word === "还" && prev && RETURN_CONTEXT.has(prev) && next && !["是", "有", "在", "没", "不", "要", "会", "能", "很", "好"].includes(next)) {
+    return "huán";
+  }
   // Aspect particle: 去过 qùguo, 吃过 chīguo (but 过马路 guò).
   if (word === "过" && prev && (lex.pos(prev) ?? []).includes("v") && next !== "了") return "guo";
   return null;
