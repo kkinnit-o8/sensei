@@ -414,6 +414,7 @@ async function stage2(
   console.log(`\nStage 2: ${pending.length} words need an example sentence (model ${MODEL}).`);
   let done = 0;
   let cost = 0;
+  let failuresInARow = 0;
 
   for (let i = 0; i < pending.length && done < LIMIT; i += BATCH) {
     const batch = pending.slice(i, Math.min(i + BATCH, i + LIMIT - done));
@@ -456,10 +457,16 @@ async function stage2(
           console.error(`\n${e.message}`);
           process.exit(1);
         }
+        failuresInARow++;
+        if (failuresInARow >= 4) {
+          console.error(`\nOpenRouter keeps failing (${(e as Error).message}). Stopping; run the build again later to continue.`);
+          process.exit(1);
+        }
         console.warn(`  request failed (${(e as Error).message}); retrying`);
-        await new Promise((r) => setTimeout(r, 3000));
+        await new Promise((r) => setTimeout(r, 3000 * failuresInARow));
         continue;
       }
+      failuresInARow = 0;
       for (const w of todo) {
         const item = items.find((x) => x.word?.trim() === w.simplified) ?? items[todo.indexOf(w)];
         if (!item || typeof item.sentence !== "string") continue;

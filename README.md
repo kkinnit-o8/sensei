@@ -17,6 +17,25 @@ order, or add it to your learning queue.
 
 Meanings, explanations and corrections are in English. The layout works on a computer and on a phone.
 
+## Quick start
+
+**Windows:** double-click **`start.cmd`** in this folder. **Mac/Linux:** run `npm run app`.
+
+The start script does everything for you:
+
+1. Installs what's needed.
+2. Asks for your OpenRouter key once and saves it in `.env.local`.
+3. Offers to generate the missing example sentences. You can stop with Ctrl+C at any time; it continues next
+   time.
+4. Builds the app after updates, starts it and opens your browser.
+
+Keep the window open while you study, and press Ctrl+C to stop.
+
+To use the app from your phone as well, run `start.cmd phone` (or `npm run app -- phone`). It then prints the
+address to open on your phone. Without `phone`, the app is only reachable from this computer.
+
+The sections below explain the same steps by hand.
+
 ## Requirements
 
 - **Node.js 20.9 or newer** (developed and tested with Node 22). Check with `node --version`.

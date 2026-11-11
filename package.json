@@ -13,7 +13,8 @@
     "dev:lan": "next dev -H 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "app": "node scripts/start.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
