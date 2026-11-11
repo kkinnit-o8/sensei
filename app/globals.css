@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* Dark mode follows the data-theme attribute set on <html> before first paint. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-2: #f1efea;
+  --text: #1f2328;
+  --muted: #646b73;
+  --border: #e4e1da;
+  --accent: #2f6f6a;
+  --accent-soft: #e2efed;
+  --accent-text: #ffffff;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --ok: #18794e;
+  --ok-soft: #e6f4ec;
+  --warn: #9a6700;
+  --warn-soft: #fff4d6;
+  --pinyin: #3d5a80;
+
+  /* Tone colours (1–4 and neutral). Readable on the light background. */
+  --tone-1: #d0302f;
+  --tone-2: #a65400;
+  --tone-3: #1a7f37;
+  --tone-4: #2563c9;
+  --tone-5: #646a74;
+}
+
+[data-theme="dark"] {
+  --bg: #121315;
+  --surface: #1b1d20;
+  --surface-2: #24262a;
+  --text: #e7e5e1;
+  --muted: #9aa1a9;
+  --border: #2e3136;
+  --accent: #5fb3aa;
+  --accent-soft: #1d3331;
+  --accent-text: #0e1716;
+  --danger: #f2877d;
+  --danger-soft: #3a1f1c;
+  --ok: #5dc690;
+  --ok-soft: #17301f;
+  --warn: #e5b94e;
+  --warn-soft: #33290f;
+  --pinyin: #9db8dc;
+
+  --tone-1: #ff7b72;
+  --tone-2: #f0a85a;
+  --tone-3: #6fd38a;
+  --tone-4: #79aefc;
+  --tone-5: #a1a7b0;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-pinyin: var(--pinyin);
+  --color-tone-1: var(--tone-1);
+  --color-tone-2: var(--tone-2);
+  --color-tone-3: var(--tone-3);
+  --color-tone-4: var(--tone-4);
+  --color-tone-5: var(--tone-5);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC",
+    "Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-zh: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC",
+    "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zh {
+  font-family: var(--font-zh);
+}
+
+/* Tone colours; disabled by the "tones-off" class on a container. */
+.tone-1 { color: var(--tone-1); }
+.tone-2 { color: var(--tone-2); }
+.tone-3 { color: var(--tone-3); }
+.tone-4 { color: var(--tone-4); }
+.tone-5 { color: var(--tone-5); }
+.tones-off .tone-1,
+.tones-off .tone-2,
+.tones-off .tone-3,
+.tones-off .tone-4,
+.tones-off .tone-5 {
+  color: inherit;
+}
+
+/* Pinyin words inside mixed text. */
+.py-word {
+  font-style: italic;
+  text-decoration: underline dotted color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 0.25em;
+}
+.tones-off .py-word {
+  color: var(--pinyin);
+}
+
+ruby rt {
+  font-size: 0.5em;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-in {
+  animation: fade-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in { animation: none; }
+}
