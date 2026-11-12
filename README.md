@@ -31,6 +31,9 @@ The start script does everything for you:
 
 Keep the window open while you study, and press Ctrl+C to stop.
 
+**Desktop shortcut (Windows):** double-click **`add-to-desktop.cmd`** once. It puts a **Chinese Teacher** icon
+on your desktop that runs `start.cmd`. You can run it again at any time, for example after moving the folder.
+
 To use the app from your phone as well, run `start.cmd phone` (or `npm run app -- phone`). It then prints the
 address to open on your phone. Without `phone`, the app is only reachable from this computer.
 
