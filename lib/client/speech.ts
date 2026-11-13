@@ -1,6 +1,7 @@
 "use client";
 /** Text-to-speech with the browser's Web Speech API and a Mandarin (zh-CN) voice. */
 import { useEffect, useState } from "react";
+import { isSilent } from "./silent";
 
 function supported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -35,7 +36,7 @@ export function setPreferredVoice(name: string | null) {
 }
 
 export function speak(text: string, rate = 0.9): boolean {
-  if (!supported() || !text) return false;
+  if (!supported() || !text || isSilent()) return false;
   const synth = window.speechSynthesis;
   synth.cancel();
   const voices = chineseVoices();

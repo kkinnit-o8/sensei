@@ -134,8 +134,16 @@ allow incoming connections for Node in your computer's firewall. (With a product
 ### Audio
 
 Audio uses your browser's built-in text-to-speech with a Mandarin (zh-CN) voice. If no Chinese voice is
-installed, Settings → Audio explains how to add one on Windows, macOS, iOS, Android and Linux. Without a voice,
-the quiz simply leaves out listening questions.
+installed, Settings → Audio explains how to add one on Windows, macOS, iOS, Android and Linux.
+
+**Silent mode** is for when you can't listen, for example on the bus or in an office. Turn it on with the speaker
+icon in the header or in Settings → Audio.
+
+- No sound plays and audio buttons are hidden.
+- Listening questions in the quick check show the pinyin to read instead. You still pick the right characters.
+- It is saved per device, so your phone can be silent while your computer isn't.
+
+Without a Chinese voice, listening questions show pinyin the same way.
 
 ## Settings
 
@@ -151,6 +159,7 @@ Settings are under **Settings** in the app.
 | Tone colours | on |
 | Pinyin above every character (ruby) | off (also a toggle in the header) |
 | Audio speed and voice | 0.9×, automatic voice |
+| Silent mode (per device) | off (also a speaker toggle in the header) |
 | Theme | like your device (or light / dark) |
 | Explanation language | English |
 

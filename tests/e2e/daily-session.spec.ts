@@ -38,12 +38,14 @@ test("a full daily session: review, learn, quiz, conversation, summary", async (
 
   // Quick check: get the first question wrong, the rest right.
   await expect(page).toHaveURL(/\/session\/quiz$/);
-  await expect(page.getByText(/What does this mean\?|Which word means this\?/)).toBeVisible();
+  await expect(page.getByText(/What does this mean\?|Which word means this\?|Which word is this\?/)).toBeVisible();
   let wrongDone = false;
   for (let guard = 0; guard < 12; guard++) {
     const quiz = await currentQuiz(page);
     if (quiz.queue.length === 0) break;
     const q = quiz.questions[quiz.queue[0]];
+    // The test browser has no Chinese voice, so listening questions show pinyin to read.
+    if (q.type === "audio") await expect(page.getByText("Which word is this?")).toBeVisible();
     const choice = wrongDone ? q.word : q.options.find((o) => o !== q.word)!;
     const label = q.type === "meaning" ? quiz.words[choice].meaning : choice;
     await page.locator("button", { hasText: label }).first().click();
@@ -71,6 +73,14 @@ test("a full daily session: review, learn, quiz, conversation, summary", async (
   await expect(opening).toContainText("了");
   await expect(opening).toContainText("shénme");
   await expect(opening).not.toContainText("今天");
+
+  // Silent mode (header toggle) hides every audio button; turning it off brings them back.
+  const playButtons = page.getByRole("button", { name: "Play audio" }).filter({ visible: true });
+  await expect(playButtons.first()).toBeVisible();
+  await page.getByRole("button", { name: "Silent mode" }).click();
+  await expect(playButtons).toHaveCount(0);
+  await page.getByRole("button", { name: "Silent mode" }).click();
+  await expect(playButtons.first()).toBeVisible();
 
   // Tap a word: the popup explains it.
   await opening.getByRole("button", { name: "jīntiān" }).click();

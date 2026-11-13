@@ -9,6 +9,7 @@ import { ZhText } from "@/components/ZhText";
 import { DEFAULT_SETTINGS, type Settings } from "@/lib/settings";
 import { SUGGESTED_MODELS } from "@/lib/models";
 import { preferredVoice, setPreferredVoice, speak, useChineseVoices } from "@/lib/client/speech";
+import { useSilent } from "@/lib/client/silent";
 
 export function SettingsForm({ keyConfigured }: { keyConfigured: boolean }) {
   const { settings, updateSettings } = useApp();
@@ -172,11 +173,18 @@ function ModelCard({ settings, save, keyConfigured }: { settings: Settings; save
 
 function AudioCard({ rate, save }: { rate: number; save: (p: Partial<Settings>) => Promise<void> }) {
   const { voices, ready, supported } = useChineseVoices();
+  const [silent, setSilent] = useSilent();
   const [voice, setVoice] = useState<string>(() => (typeof window === "undefined" ? "" : (preferredVoice() ?? "")));
   const [local, setLocal] = useState(rate);
   return (
     <Card className="space-y-4" id="audio">
       <h2 className="font-semibold">Audio</h2>
+      <Toggle
+        label="Silent mode (this device)"
+        hint="For when you can't listen: no sound plays, audio buttons are hidden, and listening questions in the quick check show pinyin to read instead. Also in the header (speaker icon)."
+        checked={silent}
+        onChange={setSilent}
+      />
       <label className="block">
         <span className="text-sm font-medium">Speed: {local.toFixed(2)}×</span>
         <input
@@ -211,10 +219,11 @@ function AudioCard({ rate, save }: { rate: number; save: (p: Partial<Settings>) 
           </select>
         </label>
       ) : null}
-      <Button variant="secondary" onClick={() => speak("你好，我是你的中文老师。", local)}>
+      <Button variant="secondary" onClick={() => speak("你好，我是你的中文老师。", local)} disabled={silent}>
         Test: 你好，我是你的中文老师。
       </Button>
-      {ready && (!supported || voices.length === 0) ? (
+      {silent ? <p className="text-sm text-muted">Turn off silent mode to test the voice.</p> : null}
+      {!silent && ready && (!supported || voices.length === 0) ? (
         <div className="space-y-2 rounded-xl bg-warn-soft p-4 text-sm">
           <p className="font-medium text-warn">No Chinese voice is installed in this browser.</p>
           <p>Audio buttons and listening questions need a Mandarin (zh-CN) voice. To add one:</p>
@@ -239,7 +248,7 @@ function AudioCard({ rate, save }: { rate: number; save: (p: Partial<Settings>) 
               espeak-ng or RHVoice).
             </li>
           </ul>
-          <p>Without a voice, the quiz simply leaves out listening questions.</p>
+          <p>Without a voice, listening questions in the quiz show pinyin to read instead.</p>
         </div>
       ) : null}
     </Card>

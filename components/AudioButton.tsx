@@ -4,12 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { useApp } from "./AppProvider";
 import { speak, useChineseVoices } from "@/lib/client/speech";
+import { useSilent } from "@/lib/client/silent";
 
-/** Plays Chinese text with the browser's zh-CN voice. */
+/** Plays Chinese text with the browser's zh-CN voice. Hidden in silent mode. */
 export function AudioButton({ text, label = "Play audio", size = "md", className = "" }: { text: string; label?: string; size?: "sm" | "md" | "lg"; className?: string }) {
   const { settings } = useApp();
   const { voices, ready, supported } = useChineseVoices();
   const [warn, setWarn] = useState(false);
+  const [silent] = useSilent();
+  if (silent) return null;
   const missing = ready && (!supported || voices.length === 0);
   const dims = size === "lg" ? "h-12 w-12" : size === "sm" ? "h-8 w-8" : "h-10 w-10";
   return (

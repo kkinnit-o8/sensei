@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "./AppProvider";
+import { useSilent } from "@/lib/client/silent";
 
 const LINKS = [
   { href: "/", label: "Today", icon: "M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5" },
@@ -37,6 +38,28 @@ function RubyToggle() {
   );
 }
 
+/** Header toggle: silent mode, for when you can't listen (kept per device). */
+function SoundToggle() {
+  const [silent, setSilent] = useSilent();
+  return (
+    <button
+      type="button"
+      onClick={() => setSilent(!silent)}
+      aria-pressed={silent}
+      aria-label="Silent mode"
+      title={silent ? "Silent mode is on: no sound, listening questions show pinyin. Click to turn sound back on." : "Sound is on. Click for silent mode (when you can't listen)."}
+      className={`flex h-[30px] w-[34px] items-center justify-center rounded-lg border transition-colors ${
+        silent ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:text-text"
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+        {silent ? <path d="m16 9 5 6m0-6-5 6" /> : <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />}
+      </svg>
+    </button>
+  );
+}
+
 export function Nav() {
   const path = usePathname();
   return (
@@ -61,6 +84,7 @@ export function Nav() {
               </Link>
             ))}
           </nav>
+          <SoundToggle />
           <RubyToggle />
           </div>
         </div>

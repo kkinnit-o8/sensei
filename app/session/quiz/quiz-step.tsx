@@ -5,6 +5,7 @@ import { Button, ButtonLink, Card, Kbd, StepHeader, StickyActions } from "@/comp
 import { HanziWord, TonePinyin, syllablesFromNum } from "@/components/ZhText";
 import { useApp } from "@/components/AppProvider";
 import { speak, useChineseVoices } from "@/lib/client/speech";
+import { useSilent } from "@/lib/client/silent";
 import { quizScore, type QuizState } from "@/lib/quiz";
 
 type Feedback = { choice: string; correct: boolean; next: QuizState } | null;
@@ -12,6 +13,9 @@ type Feedback = { choice: string; correct: boolean; next: QuizState } | null;
 export function QuizStep({ initialQuiz }: { initialQuiz: QuizState | null }) {
   const { settings } = useApp();
   const voices = useChineseVoices();
+  const [silent] = useSilent();
+  // Listening questions need sound and a Chinese voice; otherwise they show pinyin to read.
+  const canListen = !silent && voices.supported && voices.voices.length > 0;
   const [quiz, setQuiz] = useState<QuizState | null>(initialQuiz);
   const [none, setNone] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
@@ -19,27 +23,28 @@ export function QuizStep({ initialQuiz }: { initialQuiz: QuizState | null }) {
   const [error, setError] = useState<string | null>(null);
   const started = useRef(false);
 
-  // Create today's quiz once we know whether a Chinese voice exists (for audio questions).
+  // Create today's quiz. It always includes listening questions: without sound they become
+  // "read the pinyin" questions, so the quiz works the same with or without audio.
   useEffect(() => {
-    if (quiz || started.current || !voices.ready) return;
+    if (quiz || started.current) return;
     started.current = true;
     fetch("/api/session/quiz", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "start", audio: voices.supported && voices.voices.length > 0 }),
+      body: JSON.stringify({ action: "start", audio: true }),
     })
       .then((r) => r.json())
       .then((d: { quiz: QuizState | null }) => (d.quiz ? setQuiz(d.quiz) : setNone(true)))
       .catch(() => setError("Couldn't start the quiz."));
-  }, [quiz, voices.ready, voices.supported, voices.voices.length]);
+  }, [quiz]);
 
   const qIndex = quiz?.queue[0];
   const q = quiz && qIndex !== undefined ? quiz.questions[qIndex] : null;
 
-  // Play the word for audio questions.
+  // Play the word for listening questions.
   useEffect(() => {
-    if (q?.type === "audio" && !feedback) speak(q.word, settings.audioRate);
-  }, [q, qIndex, feedback, settings.audioRate]);
+    if (q?.type === "audio" && canListen && !feedback) speak(q.word, settings.audioRate);
+  }, [q, qIndex, feedback, settings.audioRate, canListen]);
 
   const answer = useCallback(
     async (choice: string) => {
@@ -151,7 +156,13 @@ export function QuizStep({ initialQuiz }: { initialQuiz: QuizState | null }) {
       <StepHeader step={3} title="Quick check" done={answered} total={quiz.questions.length} />
       <Card className="space-y-6">
         <div className="text-xs text-muted">
-          {q.type === "meaning" ? "What does this mean?" : q.type === "audio" ? "Which word do you hear?" : "Which word means this?"}
+          {q.type === "meaning"
+            ? "What does this mean?"
+            : q.type === "audio"
+              ? canListen
+                ? "Which word do you hear?"
+                : "Which word is this?"
+              : "Which word means this?"}
           {isRepeat ? " · second try" : ""}
         </div>
         <div className="flex min-h-28 items-center justify-center text-center">
@@ -159,6 +170,15 @@ export function QuizStep({ initialQuiz }: { initialQuiz: QuizState | null }) {
             <span className="zh text-6xl" lang="zh-CN">
               {q.word}
             </span>
+          ) : q.type === "audio" && !voices.ready ? (
+            <span className="h-24 w-24 animate-pulse rounded-full bg-surface-2" aria-busy="true" />
+          ) : q.type === "audio" && !canListen ? (
+            <div className="space-y-2">
+              <TonePinyin num={target.pinyinNum} className="text-4xl font-medium" />
+              <p className="text-xs text-muted">
+                {silent ? "Silent mode: read the pinyin instead of listening." : "No Chinese voice on this device: read the pinyin instead."}
+              </p>
+            </div>
           ) : q.type === "audio" ? (
             <button
               type="button"
