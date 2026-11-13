@@ -123,3 +123,5 @@ export function useSpeechInput(onFinal: (text: string) => void) {
 
   return { availability: avail, listening, interim, error, start, stop, clearError };
 }
+
+export type SpeechInput = ReturnType<typeof useSpeechInput>;

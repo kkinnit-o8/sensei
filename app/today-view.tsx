@@ -74,6 +74,24 @@ export function TodayView({ overview, streak, todayDone }: { overview: Overview;
           </li>
         ))}
       </ol>
+
+      <Link
+        href="/play"
+        className="flex items-center gap-4 rounded-2xl border border-dashed border-border bg-surface p-4 transition-colors hover:bg-surface-2"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-lg" aria-hidden>
+          🎮
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium">
+            City Adventures <span className="zh text-sm font-normal text-muted">城市冒险</span>
+          </span>
+          <span className="block text-sm text-muted">Just for fun: talk your way through a café, a shop, a market and more.</span>
+        </span>
+        <span className="text-accent" aria-hidden>
+          →
+        </span>
+      </Link>
     </div>
   );
 }

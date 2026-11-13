@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/words", label: "Words", icon: "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm0 13a3 3 0 0 1 3-3h11" },
   { href: "/progress", label: "Progress", icon: "M4 20V10m6 10V4m6 16v-7m4 7H2" },
   { href: "/history", label: "Chats", icon: "M4 5h16v11H9l-5 4V5Z" },
+  { href: "/play", label: "Play", icon: "M7 6h10a5 5 0 0 1 4.6 7l-1.2 3a2.5 2.5 0 0 1-4.3.6L14.5 15h-5l-1.6 1.6a2.5 2.5 0 0 1-4.3-.6l-1.2-3A5 5 0 0 1 7 6Zm1 4v3m-1.5-1.5h3M15.5 11h.01M17.5 13h.01" },
   { href: "/settings", label: "Settings", icon: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1.3l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2.2-1.3L14.4 3h-4l-.4 2.4a7 7 0 0 0-2.2 1.3l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.6l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2.2 1.3l.4 2.4h4l.4-2.4a7 7 0 0 0 2.2-1.3l2.4 1 2-3.4-2-1.6c.1-.4.1-.9.1-1.3Z" },
 ];
 
@@ -94,7 +95,7 @@ export function Nav() {
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         aria-label="Main"
       >
-        <div className="mx-auto grid max-w-md grid-cols-5">
+        <div className="mx-auto grid max-w-md grid-cols-6">
           {LINKS.map((l) => (
             <Link
               key={l.href}

@@ -39,6 +39,34 @@ address to open on your phone. Without `phone`, the app is only reachable from t
 
 The sections below explain the same steps by hand.
 
+## City Adventures (side game)
+
+A game on the side under **Play**. It isn't part of the daily session and doesn't affect your streak.
+
+1. **Pick a place:** ☕ café, 🏪 convenience store, 🍜 restaurant, 🚄 train station or 🍎 street market.
+2. **Get a mission**, for example "order for you and your friend, then find out the price".
+3. **Talk your way through it** with the AI characters.
+
+Each place has its own animated characters (barista 小林, your friend 美美, the sleepy clerk 王叔叔, restaurant owner
+陈阿姨, nervous waiter 小明, ticket officer 李先生 and fruit-seller grandma 张奶奶). Each has a personality, a voice and
+facial expressions. Meet them all under **Play → Meet the cast**.
+
+How a round works:
+
+- **What the characters say:** their lines use the same rule as the chat: words you know in characters, new words
+  in pinyin, and every word is tappable.
+- **Matching your level:** the game master knows which words you've learned and which of the mission's key words
+  are new to you, and keeps each line to words you know plus at most one or two new ones.
+- **Answering:** type characters or pinyin, use the mic, or turn on speaking mode. Lines are read aloud in each
+  character's voice.
+- **Patience:** you have 3 ♥. Writing in English (or being rude) costs one; the game decides this by code, not by
+  the AI. You never fail. You just get fewer stars.
+- **Stars:** ★ finish the mission, ★ lose at most one heart, ★ use at most one hint.
+- **New words:** words you met can be sent to tomorrow's learning queue.
+
+The characters and places are drawn in code (SVG), so they work offline and stay sharp on any screen. Playing
+needs the OpenRouter key, like the chat.
+
 ## Requirements
 
 - **Node.js 20.9 or newer** (developed and tested with Node 22). Check with `node --version`.

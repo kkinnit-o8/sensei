@@ -1,15 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AudioButton } from "../AudioButton";
 import { useApp } from "../AppProvider";
 import { speak, stopSpeaking } from "@/lib/client/speech";
 import { useSpeechInput } from "@/lib/client/listen";
 import { useSpeakingMode } from "@/lib/client/modes";
+import { MessageInput } from "./MessageInput";
+import { NewWords } from "./NewWords";
 import { ZhText } from "../ZhText";
 import { Button, ButtonLink, Card } from "../ui";
-import type { ChatMessageView, ChatView, ChatWord } from "@/lib/server/chat-view";
+import type { ChatMessageView, ChatView } from "@/lib/server/chat-view";
 
 export type ChatError = { kind: string; message: string } | null;
 
@@ -43,7 +44,6 @@ export function Conversation({
   const [sending, setSending] = useState(false);
   const [text, setText] = useState("");
   const [keepChatting, setKeepChatting] = useState(false);
-  const [micNote, setMicNote] = useState<string | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const [speakingMode, setSpeakingMode] = useSpeakingMode();
   // Teacher messages up to this id have been read aloud already.
@@ -118,17 +118,6 @@ export function Conversation({
     if (canTalk && !sending && !view.awaitingReply) mic.start();
   }
 
-  function toggleMic() {
-    if (mic.availability === "insecure") {
-      setMicNote(
-        "The browser only lets the app use the microphone on the computer it runs on (http://localhost). On your phone, tap the microphone key on your keyboard (with a Chinese keyboard added) to dictate instead.",
-      );
-      return;
-    }
-    if (mic.listening) mic.stop();
-    else mic.start();
-  }
-
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
       <div className="min-w-0 space-y-4">
@@ -196,82 +185,17 @@ export function Conversation({
           </Card>
         ) : null}
 
-        {showInput ? (
-          <div className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-20 -mx-2 rounded-3xl bg-bg/95 p-2 backdrop-blur md:bottom-3">
-            {mic.listening ? (
-              <div className="mb-2 flex items-center gap-2 rounded-2xl bg-danger-soft px-3 py-2 text-sm" role="status">
-                <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-danger" aria-hidden />
-                <span className="text-danger">Listening… say it in Chinese</span>
-                {mic.interim ? (
-                  <span className="zh truncate text-lg" lang="zh-CN">
-                    {mic.interim}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-            {mic.error || micNote ? (
-              <div className="mb-2 flex items-start justify-between gap-2 rounded-2xl bg-warn-soft px-3 py-2 text-sm">
-                <span>{mic.error ?? micNote}</span>
-                <button
-                  type="button"
-                  className="shrink-0 text-muted"
-                  aria-label="Dismiss"
-                  onClick={() => {
-                    mic.clearError();
-                    setMicNote(null);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ) : null}
-            <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-2 focus-within:border-accent">
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => {
-                  // Don't send while a Chinese input method is still composing.
-                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
-                    e.preventDefault();
-                    send();
-                  }
-                }}
-                rows={1}
-                maxLength={1000}
-                disabled={sending || view.awaitingReply}
-                placeholder="Reply in characters or pinyin (wo3 xi3huan1 cha2)…"
-                aria-label="Your message"
-                className="zh max-h-40 min-h-11 flex-1 resize-none bg-transparent px-2 py-2.5 text-lg outline-none [field-sizing:content] placeholder:font-sans placeholder:text-sm"
-              />
-              {mic.availability === "ok" || mic.availability === "insecure" ? (
-                <button
-                  type="button"
-                  onClick={toggleMic}
-                  disabled={sending || view.awaitingReply}
-                  aria-pressed={mic.listening}
-                  aria-label={mic.listening ? "Stop listening" : "Speak instead of typing"}
-                  title={mic.listening ? "Stop listening" : "Speak instead of typing"}
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-50 ${
-                    mic.listening ? "animate-pulse border-danger bg-danger text-white" : "border-border text-accent hover:bg-accent-soft"
-                  } ${mic.availability === "insecure" ? "opacity-60" : ""}`}
-                >
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <rect x="9" y="3" width="6" height="11" rx="3" />
-                    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
-                  </svg>
-                </button>
-              ) : null}
-              <Button onClick={send} disabled={!text.trim() || sending || view.awaitingReply} className="h-11 shrink-0">
-                Send
-              </Button>
-            </div>
-          </div>
-        ) : null}
+        {showInput ? <MessageInput text={text} setText={setText} onSend={send} disabled={sending || view.awaitingReply} mic={mic} /> : null}
         <div ref={bottom} />
       </div>
 
       <aside className="space-y-2 lg:sticky lg:top-20 lg:self-start">
-        <WordsFromChat words={view.wordsFromChat} onQueued={(w) => setView((v) => ({ ...v, wordsFromChat: v.wordsFromChat.map((x) => (x.simplified === w ? { ...x, queued: true } : x)) }))} />
+        <NewWords
+          title="Words from chat"
+          description="New words the teacher used. Add one to put it first in tomorrow's new words."
+          words={view.wordsFromChat}
+          onQueued={(w) => setView((v) => ({ ...v, wordsFromChat: v.wordsFromChat.map((x) => (x.simplified === w ? { ...x, queued: true } : x)) }))}
+        />
       </aside>
     </div>
   );
@@ -339,50 +263,5 @@ function UserMessage({ m }: { m: ChatMessageView }) {
         </div>
       ) : null}
     </div>
-  );
-}
-
-function WordsFromChat({ words, onQueued }: { words: ChatWord[]; onQueued: (w: string) => void }) {
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  async function queue(w: string) {
-    setBusy(w);
-    setError(null);
-    const res = await fetch("/api/queue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ word: w }) });
-    setBusy(null);
-    if (res.ok) onQueued(w);
-    else setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Couldn't add it.");
-  }
-  return (
-    <details className="group rounded-2xl border border-border bg-surface p-4" open>
-      <summary className="cursor-pointer list-none text-sm font-medium">
-        Words from chat <span className="text-muted">({words.length})</span>
-      </summary>
-      <p className="mt-1 text-xs text-muted">New words the teacher used. Add one to put it first in tomorrow&apos;s new words.</p>
-      {words.length === 0 ? <p className="mt-3 text-sm text-muted">None yet.</p> : null}
-      <ul className="mt-3 space-y-2">
-        {words.map((w) => (
-          <li key={w.simplified} className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <span className="zh text-lg">{w.simplified}</span> <span className="text-sm text-pinyin">{w.pinyin}</span>
-              <div className="truncate text-xs text-muted">{w.meaning || "no dictionary entry"}</div>
-            </div>
-            {w.queued ? (
-              <span className="shrink-0 text-xs text-ok">Queued ✓</span>
-            ) : w.learnable ? (
-              <button type="button" disabled={busy === w.simplified} onClick={() => queue(w.simplified)} className="shrink-0 rounded-full bg-accent-soft px-2.5 py-1 text-xs text-accent disabled:opacity-50">
-                Learn tomorrow
-              </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-      {error ? <p className="mt-2 text-xs text-danger">{error}</p> : null}
-      {words.length ? (
-        <p className="mt-3 text-xs text-muted">
-          Tap a word in the chat for its meaning, or see <Link className="underline" href="/words">all words</Link>.
-        </p>
-      ) : null}
-    </details>
   );
 }

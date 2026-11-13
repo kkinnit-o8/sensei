@@ -42,7 +42,7 @@ let current: SpeechSynthesisUtterance | null = null;
  * Say `text` with a Mandarin voice. Returns true if speech started; `onEnd` is then called once
  * when it finishes (or fails). Does nothing in silent mode.
  */
-export function speak(text: string, rate = 0.9, onEnd?: () => void): boolean {
+export function speak(text: string, rate = 0.9, onEnd?: () => void, pitch = 1): boolean {
   if (!supported() || !text || isSilent()) return false;
   const synth = window.speechSynthesis;
   synth.cancel();
@@ -50,6 +50,7 @@ export function speak(text: string, rate = 0.9, onEnd?: () => void): boolean {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "zh-CN";
   u.rate = rate;
+  u.pitch = pitch;
   const name = preferredVoice();
   const voice = voices.find((v) => v.name === name) ?? voices[0];
   if (voice) u.voice = voice;

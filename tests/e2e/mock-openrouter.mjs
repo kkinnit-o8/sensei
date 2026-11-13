@@ -19,7 +19,38 @@ const REPLIES = [
   { reply: "好的。你想去哪儿？", translation: "OK. Where do you want to go?", hint: "我想去北京。" },
 ];
 
+/** Mock game master: each message in Chinese completes one more goal; English gets a confused answer. */
+function gameReply(body) {
+  const msgs = body.messages ?? [];
+  const system = msgs[0]?.content ?? "";
+  const section = (from, to) => system.slice(system.indexOf(from), system.indexOf(to));
+  const ids = (text) => [...text.matchAll(/^- "([^"]+)":/gm)].map((m) => m[1]);
+  const cast = ids(section("CHARACTERS", "THE PLAYER'S MISSION"));
+  const goals = ids(section("Goals:", "FACTS"));
+  const players = msgs.filter((m) => m.role === "user" && !m.content.startsWith("(The player") && !m.content.startsWith("That answer was not valid"));
+  const last = players[players.length - 1];
+  if (last && last.content.includes("坏")) return "Sorry, no JSON here.";
+  const isEnglish = (t) => !/[\u4e00-\u9fff]/.test(t) && /\b(the|want|a|please|hello|i|coffee)\b/i.test(t);
+  const chinese = players.filter((m) => !isEnglish(m.content)).length;
+  const done = goals.slice(0, Math.min(chinese, goals.length));
+  let lines;
+  if (players.length === 0) lines = [{ speaker: cast[0], text: "你好！欢迎光临！你要什么？", translation: "Hi! Welcome! What would you like?", expression: "happy" }];
+  else if (isEnglish(last.content)) lines = [{ speaker: cast[0], text: "对不起，我听不懂。请说中文。", translation: "Sorry, I don't understand. Please speak Chinese.", expression: "confused" }];
+  else {
+    lines = [{ speaker: cast[0], text: done.length === goals.length ? "好的，谢谢！再见！" : "好的。还要什么？", translation: "OK. Anything else?", expression: "happy" }];
+    if (cast[1] && chinese === 1) lines.push({ speaker: cast[1], text: "我也要喝茶！", translation: "I want tea too!", expression: "surprised" });
+  }
+  return JSON.stringify({
+    lines,
+    goals_completed: done,
+    correction: last && !isEnglish(last.content) && chinese === 1 ? { explanation: "Nice! Just add 一杯.", corrected: "我要一杯咖啡。" } : null,
+    hint: "我要一杯咖啡。",
+    rude: false,
+  });
+}
+
 function teacherReply(body) {
+  if ((body.messages?.[0]?.content ?? "").includes("ROLE-PLAY GAME")) return gameReply(body);
   const msgs = body.messages ?? [];
   const users = msgs.filter((m) => m.role === "user" && !m.content.startsWith("(The student") && !m.content.startsWith("That answer was not valid"));
   const system = msgs[0]?.content ?? "";

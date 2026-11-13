@@ -141,3 +141,24 @@ ruby rt {
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in { animation: none; }
 }
+
+/* City Adventures characters: blinking and breathing */
+.character-eyes {
+  animation: blink 5.2s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.08); }
+}
+.character-breathe {
+  animation: breathe 4.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .character-eyes, .character-breathe { animation: none; }
+}
