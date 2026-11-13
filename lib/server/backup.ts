@@ -3,7 +3,19 @@ import "server-only";
 import { getDb } from "./db";
 
 /** Tables in dependency order (parents first). */
-const TABLES = ["settings", "custom_words", "learned", "cards", "review_log", "learn_queue", "days", "conversations", "messages"] as const;
+const TABLES = [
+  "settings",
+  "custom_words",
+  "learned",
+  "cards",
+  "review_log",
+  "learn_queue",
+  "days",
+  "conversations",
+  "messages",
+  "game_runs",
+  "game_messages",
+] as const;
 
 export interface Backup {
   app: "chinese-teacher";

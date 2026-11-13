@@ -95,6 +95,44 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX messages_conv ON messages(conversation_id);
   `,
+  // 2: City Adventures game
+  `
+  CREATE TABLE game_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scene_id TEXT NOT NULL,
+    mission_id TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    goals TEXT NOT NULL DEFAULT '[]',  -- JSON: completed goal ids
+    hearts INTEGER NOT NULL,
+    hints INTEGER NOT NULL DEFAULT 0,
+    complete INTEGER NOT NULL DEFAULT 0,
+    stars INTEGER NOT NULL DEFAULT 0,
+    model TEXT NOT NULL,
+    cost REAL NOT NULL DEFAULT 0,
+    prompt_tokens INTEGER NOT NULL DEFAULT 0,
+    completion_tokens INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX game_runs_scene ON game_runs(scene_id);
+
+  CREATE TABLE game_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL REFERENCES game_runs(id) ON DELETE CASCADE,
+    turn INTEGER NOT NULL,
+    role TEXT NOT NULL,              -- player | npc
+    speaker TEXT,                    -- character id for npc lines
+    text TEXT NOT NULL,
+    translation TEXT,
+    expression TEXT,
+    hint TEXT,
+    hint_used INTEGER NOT NULL DEFAULT 0,
+    correction TEXT,                 -- JSON on player messages
+    not_chinese INTEGER NOT NULL DEFAULT 0,
+    raw TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX game_messages_run ON game_messages(run_id);
+  `,
 ];
 
 export function dbPath(): string {
