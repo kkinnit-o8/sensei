@@ -33,7 +33,7 @@ export function StartChat({ exchanges }: { exchanges: number }) {
     }
   }
 
-  if (started) return <Conversation initial={started.view} initialError={started.error} />;
+  if (started) return <Conversation initial={started.view} initialError={started.error} speakOpening />;
 
   return (
     <Card className="space-y-5">

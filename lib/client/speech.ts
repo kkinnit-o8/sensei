@@ -1,7 +1,7 @@
 "use client";
 /** Text-to-speech with the browser's Web Speech API and a Mandarin (zh-CN) voice. */
 import { useEffect, useState } from "react";
-import { isSilent } from "./silent";
+import { isSilent } from "./modes";
 
 function supported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -35,7 +35,14 @@ export function setPreferredVoice(name: string | null) {
   }
 }
 
-export function speak(text: string, rate = 0.9): boolean {
+// Keep a reference to the utterance: some browsers drop `onend` if it is garbage-collected.
+let current: SpeechSynthesisUtterance | null = null;
+
+/**
+ * Say `text` with a Mandarin voice. Returns true if speech started; `onEnd` is then called once
+ * when it finishes (or fails). Does nothing in silent mode.
+ */
+export function speak(text: string, rate = 0.9, onEnd?: () => void): boolean {
   if (!supported() || !text || isSilent()) return false;
   const synth = window.speechSynthesis;
   synth.cancel();
@@ -46,8 +53,30 @@ export function speak(text: string, rate = 0.9): boolean {
   const name = preferredVoice();
   const voice = voices.find((v) => v.name === name) ?? voices[0];
   if (voice) u.voice = voice;
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    if (current === u) current = null;
+    onEnd?.();
+  };
+  u.onend = finish;
+  u.onerror = (e) => {
+    // Cut off by newer speech: not "finished", so nothing chained to it runs.
+    if (e.error === "interrupted" || e.error === "canceled") {
+      done = true;
+      if (current === u) current = null;
+      return;
+    }
+    finish();
+  };
+  current = u;
   synth.speak(u);
-  return !!voice;
+  return true;
+}
+
+export function stopSpeaking() {
+  if (supported()) window.speechSynthesis.cancel();
 }
 
 /** Re-renders when the browser finishes loading its voice list. */

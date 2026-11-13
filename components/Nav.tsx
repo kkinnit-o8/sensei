@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "./AppProvider";
-import { useSilent } from "@/lib/client/silent";
+import { useSilent } from "@/lib/client/modes";
 
 const LINKS = [
   { href: "/", label: "Today", icon: "M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5" },

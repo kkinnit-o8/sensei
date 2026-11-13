@@ -145,6 +145,21 @@ icon in the header or in Settings → Audio.
 
 Without a Chinese voice, listening questions show pinyin the same way.
 
+### Talking with the teacher
+
+- **Replies are read aloud as soon as they arrive.** You can turn this off in Settings → Audio.
+- **Mic button** next to the chat box: speak Chinese, and the text appears in the box so you can check it
+  before sending.
+- **🎙 Speaking mode** (button above the chat) is hands-free. The teacher's reply is read aloud, then the mic
+  starts by itself, and what you say is sent when you pause.
+
+Speech input uses the browser's speech recognition: Chrome, Edge or Safari, with an internet connection
+(the browser sends the audio to its speech service).
+
+Browsers only allow the microphone on secure pages. That works on the computer running the app
+(`http://localhost:3000`), but not on a phone opening `http://192.168.x.x:3000`. On the phone, use your
+keyboard's microphone key instead, with a Chinese keyboard added.
+
 ## Settings
 
 Settings are under **Settings** in the app.
@@ -160,6 +175,7 @@ Settings are under **Settings** in the app.
 | Pinyin above every character (ruby) | off (also a toggle in the header) |
 | Audio speed and voice | 0.9×, automatic voice |
 | Silent mode (per device) | off (also a speaker toggle in the header) |
+| Read the teacher's replies aloud | on |
 | Theme | like your device (or light / dark) |
 | Explanation language | English |
 

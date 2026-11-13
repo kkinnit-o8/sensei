@@ -6,6 +6,49 @@ type Quiz = {
   queue: number[];
 };
 
+/**
+ * The test browser can't speak or listen, so replace both with fakes:
+ * - speech is recorded in window.__spoken and "finishes" right away;
+ * - a fake recognizer "hears" the next phrase from window.__toHear (or nothing).
+ */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __spoken: string[]; __toHear: string[]; SpeechRecognition: unknown; webkitSpeechRecognition: unknown };
+    w.__spoken = [];
+    w.__toHear = [];
+    const synth = window.speechSynthesis;
+    synth.speak = (u: SpeechSynthesisUtterance) => {
+      w.__spoken.push(u.text);
+      setTimeout(() => u.onend?.(new Event("end") as SpeechSynthesisEvent), 30);
+    };
+    synth.cancel = () => {};
+    class FakeRecognition {
+      lang = "";
+      interimResults = false;
+      continuous = false;
+      maxAlternatives = 1;
+      onresult: ((e: unknown) => void) | null = null;
+      onerror: ((e: { error: string }) => void) | null = null;
+      onend: (() => void) | null = null;
+      start() {
+        const heard = w.__toHear.shift();
+        setTimeout(() => {
+          if (heard) this.onresult?.({ resultIndex: 0, results: { length: 1, 0: Object.assign([{ transcript: heard }], { isFinal: true }) } });
+          else this.onerror?.({ error: "no-speech" });
+          this.onend?.();
+        }, 50);
+      }
+      stop() {}
+      abort() {}
+    }
+    // Newer Chromium has the unprefixed name built in; replace both.
+    w.SpeechRecognition = FakeRecognition;
+    w.webkitSpeechRecognition = FakeRecognition;
+  });
+});
+
+const spoken = (page: Page) => page.evaluate(() => (window as unknown as { __spoken: string[] }).__spoken);
+
 async function currentQuiz(page: Page): Promise<Quiz> {
   // "start" returns today's existing quiz without changing it.
   const res = await page.request.post("/api/session/quiz", { data: { action: "start", audio: false } });
@@ -67,6 +110,8 @@ test("a full daily session: review, learn, quiz, conversation, summary", async (
   await page.getByRole("button", { name: "food and cooking" }).click();
   await page.getByRole("button", { name: "Start the conversation" }).click();
   await expect(page.getByText("Topic: food and cooking")).toBeVisible();
+  // The teacher's opening is read aloud without pressing anything.
+  await expect.poll(() => spoken(page)).toContain("你好！你今天吃了什么？");
 
   // The core rule: 了 (learned) in characters, words not learned yet in pinyin.
   const opening = page.locator("li").filter({ hasText: "jīntiān" }).first();
@@ -124,4 +169,37 @@ test("a full daily session: review, learn, quiz, conversation, summary", async (
   // The conversation is saved for later.
   await page.goto("/history");
   await expect(visible("food and cooking")).toBeVisible();
+});
+
+test("voice: the mic writes for you, and speaking mode is hands-free", async ({ page }) => {
+  await page.goto("/session/chat");
+  // Continue today's conversation (or start one if this test runs alone).
+  const start = page.getByRole("button", { name: "Start the conversation" });
+  if (await start.isVisible().catch(() => false)) await start.click();
+  const keepGoing = page.getByRole("button", { name: "Keep chatting" });
+  if (await keepGoing.isVisible().catch(() => false)) await keepGoing.click();
+  const input = page.getByLabel("Your message");
+  await expect(input).toBeVisible();
+
+  // Mic button: speech goes into the text box, to check before sending.
+  await page.evaluate(() => (window as unknown as { __toHear: string[] }).__toHear.push("我喜欢喝茶"));
+  await page.getByRole("button", { name: "Speak instead of typing" }).click();
+  await expect(input).toHaveValue("我喜欢喝茶");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(input).toHaveValue("");
+  // The reply is read aloud as soon as it arrives.
+  const before = (await spoken(page)).length;
+  await expect.poll(async () => (await spoken(page)).length).toBeGreaterThan(before);
+
+  // Speaking mode: listens right away, sends what it hears, reads the reply, listens again.
+  await page.evaluate(() => (window as unknown as { __toHear: string[] }).__toHear.push("我今天在家"));
+  const count = (await spoken(page)).length;
+  await page.getByRole("button", { name: /Speaking mode/ }).click();
+  await expect.poll(async () => (await spoken(page)).length, { timeout: 20_000 }).toBeGreaterThan(count);
+  const view = await (await page.request.post("/api/chat", { data: {} })).json();
+  const texts = view.view.messages.map((m: { text: string }) => m.text);
+  expect(texts).toContain("我今天在家");
+  // After the reply it listened again; the fake heard nothing this time.
+  await expect(page.getByText("I didn't hear anything.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: /Speaking mode/ }).click();
 });

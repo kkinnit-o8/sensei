@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useApp } from "./AppProvider";
 import { speak, useChineseVoices } from "@/lib/client/speech";
-import { useSilent } from "@/lib/client/silent";
+import { useSilent } from "@/lib/client/modes";
 
 /** Plays Chinese text with the browser's zh-CN voice. Hidden in silent mode. */
 export function AudioButton({ text, label = "Play audio", size = "md", className = "" }: { text: string; label?: string; size?: "sm" | "md" | "lg"; className?: string }) {

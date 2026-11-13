@@ -9,7 +9,7 @@ import { ZhText } from "@/components/ZhText";
 import { DEFAULT_SETTINGS, type Settings } from "@/lib/settings";
 import { SUGGESTED_MODELS } from "@/lib/models";
 import { preferredVoice, setPreferredVoice, speak, useChineseVoices } from "@/lib/client/speech";
-import { useSilent } from "@/lib/client/silent";
+import { useSilent } from "@/lib/client/modes";
 
 export function SettingsForm({ keyConfigured }: { keyConfigured: boolean }) {
   const { settings, updateSettings } = useApp();
@@ -78,7 +78,7 @@ export function SettingsForm({ keyConfigured }: { keyConfigured: boolean }) {
         </div>
       </Card>
 
-      <AudioCard rate={settings.audioRate} save={save} />
+      <AudioCard rate={settings.audioRate} autoSpeak={settings.autoSpeak} save={save} />
 
       <BackupCard />
 
@@ -171,7 +171,7 @@ function ModelCard({ settings, save, keyConfigured }: { settings: Settings; save
   );
 }
 
-function AudioCard({ rate, save }: { rate: number; save: (p: Partial<Settings>) => Promise<void> }) {
+function AudioCard({ rate, autoSpeak, save }: { rate: number; autoSpeak: boolean; save: (p: Partial<Settings>) => Promise<void> }) {
   const { voices, ready, supported } = useChineseVoices();
   const [silent, setSilent] = useSilent();
   const [voice, setVoice] = useState<string>(() => (typeof window === "undefined" ? "" : (preferredVoice() ?? "")));
@@ -184,6 +184,12 @@ function AudioCard({ rate, save }: { rate: number; save: (p: Partial<Settings>) 
         hint="For when you can't listen: no sound plays, audio buttons are hidden, and listening questions in the quick check show pinyin to read instead. Also in the header (speaker icon)."
         checked={silent}
         onChange={setSilent}
+      />
+      <Toggle
+        label="Read the teacher's replies aloud"
+        hint="Each new message in the chat is spoken as soon as it arrives. For a hands-free conversation, turn on 🎙 Speaking mode in the chat: you answer by talking."
+        checked={autoSpeak}
+        onChange={(v) => save({ autoSpeak: v })}
       />
       <label className="block">
         <span className="text-sm font-medium">Speed: {local.toFixed(2)}×</span>

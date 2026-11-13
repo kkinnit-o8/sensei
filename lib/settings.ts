@@ -10,6 +10,8 @@ export const settingsSchema = z.object({
   toneStyle: z.enum(["marks", "numbers"]),
   toneColors: z.boolean(),
   audioRate: z.number().min(0.5).max(1.5),
+  /** Read the teacher's replies aloud as soon as they arrive. */
+  autoSpeak: z.boolean(),
   theme: z.enum(["system", "light", "dark"]),
   explanationLanguage: z.string().trim().min(1).max(40),
   /** Show every word as characters with pinyin above (ruby), ignoring what is learned. */
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   toneStyle: "marks",
   toneColors: true,
   audioRate: 0.9,
+  autoSpeak: true,
   theme: "system",
   explanationLanguage: "English",
   ruby: false,

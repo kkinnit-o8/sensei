@@ -5,7 +5,7 @@ import { Button, ButtonLink, Card, Kbd, StepHeader, StickyActions } from "@/comp
 import { HanziWord, TonePinyin, syllablesFromNum } from "@/components/ZhText";
 import { useApp } from "@/components/AppProvider";
 import { speak, useChineseVoices } from "@/lib/client/speech";
-import { useSilent } from "@/lib/client/silent";
+import { useSilent } from "@/lib/client/modes";
 import { quizScore, type QuizState } from "@/lib/quiz";
 
 type Feedback = { choice: string; correct: boolean; next: QuizState } | null;
